@@ -59,6 +59,9 @@ import org.springframework.util.PatternMatchUtils;
  * @see org.springframework.stereotype.Repository
  * @see org.springframework.stereotype.Service
  * @see org.springframework.stereotype.Controller
+ *
+ * ClassPathBeanDefinitionScanner是扫描器，但是它的作用和BeanDefinitionReader类似，它可以进行扫描，扫描某个包路径，
+ * 对扫描到的类进行解析，比如，扫描到的类上如果存在@Component注解，那么就会把这个类解析为一个BeanDefinition
  */
 public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateComponentProvider {
 

@@ -340,6 +340,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 		checkLookupMethods(beanClass, beanName);
 
 		// Quick check on the concurrent map first, with minimal locking.
+		// 先从缓存中取构造方法
 		Constructor<?>[] candidateConstructors = this.candidateConstructorsCache.get(beanClass);
 		if (candidateConstructors == null) {
 			// Fully synchronized resolution now...
@@ -348,6 +349,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 				if (candidateConstructors == null) {
 					Constructor<?>[] rawCandidates;
 					try {
+						// 获取构造参数
 						rawCandidates = beanClass.getDeclaredConstructors();
 					}
 					catch (Throwable ex) {
@@ -478,6 +480,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 	public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) {
 		InjectionMetadata metadata = findAutowiringMetadata(beanName, bean.getClass(), pvs);
 		try {
+			// 注入点进行注入
 			metadata.inject(bean, beanName, pvs);
 		}
 		catch (BeanCreationException ex) {
@@ -542,28 +545,39 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 
 		do {
 			final List<InjectionMetadata.InjectedElement> currElements = new ArrayList<>();
-
+			//1. 遍历当前类的所有的属性字段Field
 			ReflectionUtils.doWithLocalFields(targetClass, field -> {
+				//2. 查看字段上是否存在@Autowired、@Value、@Inject中的其中任意一个，存在则认为该字段是一个注入点
 				MergedAnnotation<?> ann = findAutowiredAnnotation(field);
 				if (ann != null) {
+					//3. 如果字段是static的，则不进行注入
+					// 静态变量是属于类本身的信息，当类加载器加载静态变量时，Spring的上下文环境还没有被加载，所以不可能为静态变量绑定值（这只是最表象原因，并不准确）。
+					// 同时，Spring也不鼓励为静态变量注入值（言外之意：并不是不能注入），因为它认为这会增加了耦合度，对测试不友好。
 					if (Modifier.isStatic(field.getModifiers())) {
 						if (logger.isInfoEnabled()) {
 							logger.info("Autowired annotation is not supported on static fields: " + field);
 						}
 						return;
 					}
+					//4. 获取@Autowired中的required属性的值
 					boolean required = determineRequiredStatus(ann);
+					// 将字段信息构造成一个AutowiredFieldElement对象，作为一个注入点对象添加到currElements集合中。
 					currElements.add(new AutowiredFieldElement(field, required));
 				}
 			});
 
+			// 遍历当前类的所有方法Method
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
+				// 判断当前Method是否是桥接方法，如果是找到原方法
+				// https://blog.csdn.net/mhmyqn/article/details/47342577
 				Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
 				if (!BridgeMethodResolver.isVisibilityBridgeMethodPair(method, bridgedMethod)) {
 					return;
 				}
+				// 查看方法上是否存在@Autowired、@Value、@Inject中的其中任意一个，存在则认为该方法是一个注入点
 				MergedAnnotation<?> ann = findAutowiredAnnotation(bridgedMethod);
 				if (ann != null && method.equals(ClassUtils.getMostSpecificMethod(method, clazz))) {
+					// 如果方法是static的，则不进行注入
 					if (Modifier.isStatic(method.getModifiers())) {
 						if (logger.isInfoEnabled()) {
 							logger.info("Autowired annotation is not supported on static methods: " + method);
@@ -576,17 +590,20 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 									method);
 						}
 					}
+					// 获取@Autowired中的required属性的值
 					boolean required = determineRequiredStatus(ann);
 					PropertyDescriptor pd = BeanUtils.findPropertyForMethod(bridgedMethod, clazz);
+					// 将方法信息构造成一个AutowiredMethodElement对象，作为一个注入点对象添加到currElements集合中。
 					currElements.add(new AutowiredMethodElement(method, required, pd));
 				}
 			});
 
 			elements.addAll(0, currElements);
+			// 遍历完当前类的字段和方法后，将遍历父类的，直到没有父类。
 			targetClass = targetClass.getSuperclass();
 		}
 		while (targetClass != null && targetClass != Object.class);
-
+		// 最后将currElements集合封装成一个InjectionMetadata对象，作为当前Bean对于的注入点集合对象，并缓存
 		return InjectionMetadata.forElements(elements, clazz);
 	}
 

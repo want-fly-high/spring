@@ -696,11 +696,14 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	@Nullable
 	public Class<?> getType(String name, boolean allowFactoryBeanInit) throws NoSuchBeanDefinitionException {
 		String beanName = transformedBeanName(name);
-
+		// 得到合并之后的BeanDefinition
 		// Check manually registered singletons.
+		// 如果单例池已经生成好了的话，直接返回单例池中的Bean对象
 		Object beanInstance = getSingleton(beanName, false);
 		if (beanInstance != null && beanInstance.getClass() != NullBean.class) {
+			// 判断是否为FactoryBean
 			if (beanInstance instanceof FactoryBean<?> factoryBean && !BeanFactoryUtils.isFactoryDereference(name)) {
+				// 调用FactoryBean.getObject()获取
 				return getTypeForFactoryBean(factoryBean);
 			}
 			else {

@@ -45,6 +45,8 @@ import org.springframework.util.Assert;
  * @author Phillip Webb
  * @since 3.0
  * @see AnnotationConfigApplicationContext#register
+ *
+ * 可以直接把某个类转换为BeanDefinition，并且会解析该类上的注解
  */
 public class AnnotatedBeanDefinitionReader {
 
