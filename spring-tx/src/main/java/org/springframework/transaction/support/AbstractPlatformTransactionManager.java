@@ -344,11 +344,16 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 		// Use defaults if no transaction definition given.
 		TransactionDefinition def = (definition != null ? definition : TransactionDefinition.withDefaults());
 
+		// 获取事务对象, 得到的事务对象中可能持有也可能没持有数据库连接对象
+		// 如果本次开启事务的线程第一次开启事务, 事务对象中没有数据库连接对象
+		// 如果本次开启事务时线程中还有事务没有提交, 那么获得的事务对象中就拥有数据库连接对象
 		Object transaction = doGetTransaction();
 		boolean debugEnabled = logger.isDebugEnabled();
 
+		// 判断获取的事务对象中是否持有数据库连接
 		if (isExistingTransaction(transaction)) {
 			// Existing transaction found -> check propagation behavior to find out how to behave.
+			// 存在数据库连接则处理各种传播级别
 			return handleExistingTransaction(def, transaction, debugEnabled);
 		}
 
@@ -392,7 +397,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 	 * Start a new transaction.
 	 */
 	private TransactionStatus startTransaction(TransactionDefinition definition, Object transaction,
-			boolean debugEnabled, @Nullable SuspendedResourcesHolder suspendedResources) {
+											   boolean debugEnabled, @Nullable SuspendedResourcesHolder suspendedResources) {
 
 		boolean newSynchronization = (getTransactionSynchronization() != SYNCHRONIZATION_NEVER);
 		DefaultTransactionStatus status = newTransactionStatus(
@@ -443,7 +448,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 			if (!isNestedTransactionAllowed()) {
 				throw new NestedTransactionNotSupportedException(
 						"Transaction manager does not allow nested transactions by default - " +
-						"specify 'nestedTransactionAllowed' property with value 'true'");
+								"specify 'nestedTransactionAllowed' property with value 'true'");
 			}
 			if (debugEnabled) {
 				logger.debug("Creating nested transaction with name [" + definition.getName() + "]");
@@ -1206,7 +1211,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 	protected void doSetRollbackOnly(DefaultTransactionStatus status) throws TransactionException {
 		throw new IllegalTransactionStateException(
 				"Participating in existing transactions is not supported - when 'isExistingTransaction' " +
-				"returns true, appropriate 'doSetRollbackOnly' behavior must be provided");
+						"returns true, appropriate 'doSetRollbackOnly' behavior must be provided");
 	}
 
 	/**
