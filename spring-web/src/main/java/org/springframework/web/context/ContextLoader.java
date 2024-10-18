@@ -245,7 +245,7 @@ public class ContextLoader {
 	}
 
 
-	/**
+	/** 该方法就会去创建要给Spring容器
 	 * Initialize Spring's web application context for the given servlet context,
 	 * using the application context provided at construction time, or creating a new one
 	 * according to the "{@link #CONTEXT_CLASS_PARAM contextClass}" and
@@ -273,6 +273,7 @@ public class ContextLoader {
 		try {
 			// Store context in local instance variable, to guarantee that
 			// it is available on ServletContext shutdown.
+			// 从ServletContext中获取contextClass参数值，该参数表示所要创建的Spring容器的类型，可以在web.xml中通过<context-param>来进行配置
 			if (this.context == null) {
 				this.context = createWebApplicationContext(servletContext);
 			}

@@ -99,6 +99,7 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 	 */
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
+		// Tomcat启动，解析web.xml时发现定义了一个ContextLoaderListener，Tomcat就会执行该listener中的contextInitialized()方法
 		initWebApplicationContext(event.getServletContext());
 	}
 

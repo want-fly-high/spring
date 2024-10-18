@@ -40,6 +40,7 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * 进行类型转换
  * Internal helper class for converting property values to target types.
  *
  * <p>Works on a given {@link PropertyEditorRegistrySupport} instance.

@@ -571,6 +571,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// ConfigurationClassPostProcessor 解析配置类(这里的配置类不仅仅局限于@Configuration 注解，还包括 @Import、 @ImportResource 等注解)，将解析到的需要注入到Spring容器中的bean的BeanDefinition保存起来
 				// AutowiredAnnotationBeanPostProcessor 解析bean中的 需要自动注入的bean @Autowired 和 @Inject @Value注解。
 				invokeBeanFactoryPostProcessors(beanFactory);
+				// 这里执行完之后就会有BeanDefinition了
 
 				// Register bean processors that intercept bean creation.
 				// 注册并创建拦截bean创建的bean处理器
@@ -648,12 +649,13 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		// Initialize any placeholder property sources in the context environment.
-		// 这个方法是为了给用户自己实现初始化逻辑，可以初始化一些属性资源。因此Spring并没有实现这个方法。留给子类覆盖
+		// 这个方法是为了给用户自己实现初始化逻辑，可以初始化一些属性资源。因此Spring并没有实现这个方法。留给子类覆盖 (模板方法)
 		initPropertySources();
 
 		// Validate that all properties marked as required are resolvable:
 		// see ConfigurablePropertyResolver#setRequiredProperties
 		// 验证需要的属性文件是否都已经放入环境中
+		// 这个方法的实现是AbstractEnvironment
 		getEnvironment().validateRequiredProperties();
 
 		// Store pre-refresh ApplicationListeners...
@@ -678,6 +680,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void initPropertySources() {
 		// For subclasses: do nothing by default.
+		// getEnvironment().setRequiredProperties("");
 	}
 
 	/**

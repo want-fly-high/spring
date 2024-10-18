@@ -501,6 +501,8 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * <p>May be overridden in subclasses in order to initialize further strategy objects.
 	 */
 	protected void initStrategies(ApplicationContext context) {
+		// 这个方法会从Spring容器中获取一些特殊类型的Bean对象，并设置给DispatcherServlet对象中对应的属性，比如HandlerMapping、HandlerAdapter。
+
 		initMultipartResolver(context);
 		initLocaleResolver(context);
 		initThemeResolver(context);
@@ -593,6 +595,8 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * we default to BeanNameUrlHandlerMapping.
 	 */
 	private void initHandlerMappings(ApplicationContext context) {
+		// 1. 会先从Spring容器中获取HandlerMapping类型的Bean对象，如果不为空，那么就获取出来的Bean对象赋值给DispatcherServlet的handlerMappings属性
+		//2. 如果没有获取到，则会从DispatcherServlet.properties文件中读取配置，从而得到SpringMVC默认给我们配置的HandlerMapping
 		this.handlerMappings = null;
 
 		if (this.detectAllHandlerMappings) {
@@ -618,6 +622,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		// Ensure we have at least one HandlerMapping, by registering
 		// a default HandlerMapping if no other mappings are found.
 		if (this.handlerMappings == null) {
+			// 默认提供了3个HandlerMapping，4个HandlerAdapter，这些概念在后续DispatcherServlet处理请求时都是会用到的。
 			this.handlerMappings = getDefaultStrategies(context, HandlerMapping.class);
 			if (logger.isTraceEnabled()) {
 				logger.trace("No HandlerMappings declared for servlet '" + getServletName() +
